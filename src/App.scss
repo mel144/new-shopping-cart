@@ -1,204 +1,6 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-@import url('https://fonts.googleapis.com/css?family=Roboto');
-
-body {
-  margin: 0;
-  color: #1b1a20;
-  font-family: 'Roboto', sans-serif;
-}
-
-main {
-  padding: 20px 2%;
-  max-width: 1200px;
-  margin: 20px auto 0 auto;
-}
-
-@media only screen and (max-width: 1024px) {
-  body {
-    .filters {
-      width: 20%;
-    }
-
-    .shelf-container {
-      width: 80%;
-
-      .shelf-item {
-        width: 33.33%;
-      }
-    }
-  }
-}
-
-@media only screen and (max-width: 640px) {
-  body {
-    .filters {
-      width: 25%;
-    }
-
-    .shelf-container {
-      width: 75%;
-
-      .shelf-item {
-        width: 50%;
-        padding: 10px;
-
-        &__title {
-          margin-top: 5px;
-          padding: 0;
-        }
-      }
-    }
-
-    .float-cart {
-      width: 100%;
-      right: -100%;
-
-      &--open {
-        right: 0;
-      }
-
-      &__close-btn {
-        left: 0px;
-        z-index: 2;
-        background-color: #1b1a20;
-      }
-
-      &__header {
-        padding: 25px 0;
-      }
-    }
-  }
-}
-
-@media only screen and (max-width: 460px) {
-  body {
-    main {
-      padding: 2%;
-      margin-top: 5px;
-    }
-
-    .filters {
-      width: 100%;
-      text-align: center;
-
-      .title {
-        margin-bottom: 15px;
-      }
-    }
-
-    .shelf-container-header {
-      .products-found {
-        width: 100%;
-        text-align: center;
-        margin: 10px 0;
-      }
-
-      .sort {
-        width: 100%;
-        text-align: center;
-      }
-    }
-
-    .shelf-container {
-      width: 100%;
-
-      .shelf-item {
-        width: 50%;
-
-        &__buy-btn {
-          display: none;
-        }
-      }
-    }
-  }
-}
-.spinner.lds-ring {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  margin-left: -32px;
-  margin-top: -32px;
-  width: 64px;
-  height: 64px;
-  z-index: 10;
-  border-radius: 5px;
-  background-color: #000;
-
-  div {
-    box-sizing: border-box;
-    display: block;
-    position: absolute;
-    width: 51px;
-    height: 51px;
-    margin: 6px;
-    border: 6px solid #fff;
-    border-radius: 50%;
-    animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-    border-color: #fff transparent transparent transparent;
-
-    &:nth-child(1) {
-      animation-delay: -0.45s;
-    }
-
-    &:nth-child(2) {
-      animation-delay: -0.3s;
-    }
-
-    &:nth-child(3) {
-      animation-delay: -0.15s;
-    }
-  }
-
-  @keyframes lds-ring {
-    0% {
-      transform: rotate(0deg);
-    }
-
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-}
-.product-table {
-  width: 85%;
-  float: left;
+.shelf-container {
+  width: 60%;
   min-height: 600px;
-
-  &-header {
-    margin-bottom: 10px;
-
-    .products-found {
-      float: left;
-      margin: 0;
-      margin-top: 8px;
-    }
-
-    .sort {
-      float: right;
-
-      select {
-        background-color: #fff;
-        outline: none;
-        border: 1px solid #ececec;
-        border-radius: 2px;
-        margin-left: 10px;
-        width: auto;
-        height: 35px;
-        cursor: pointer;
-
-        &:hover {
-          border: 1px solid #5b5a5e;
-        }
-      }
-    }
-  }
 
   .shelf-item {
     float: left;
@@ -215,7 +17,7 @@ main {
       border: 1px solid #eee;
 
       .shelf-item__buy-btn {
-        background-color: purple;
+        background-color: goldenrod;
       }
     }
 
@@ -262,19 +64,15 @@ main {
           margin-left: 5px;
         }
       }
-
-      .installment {
-        color: #9c9b9b;
-      }
     }
 
     &__buy-btn {
-      background-color: green;
+      background-color: black;
       color: #fff;
       padding: 15px 0;
       margin-top: 10px;
       cursor: pointer;
-      // border-bottom: 2px solid #151419;
+      border-bottom: 2px solid #151419;
       transition: background-color 0.2s;
     }
   }
@@ -317,7 +115,7 @@ main {
     display: inline-block;
     vertical-align: middle;
     margin-right: 15px;
-    //background-image: url('../../static/bag-icon.png');
+    background-image: url('./static/bag-icon.png');
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
@@ -419,7 +217,7 @@ main {
         border-radius: 50%;
         position: absolute;
         background-size: auto 100%;
-        //background-image: url('../../static/sprite_delete-icon.png');
+        background-image: url('./static/sprite_delete-icon.png');
         background-repeat: no-repeat;
         z-index: 2;
         cursor: pointer;
