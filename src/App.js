@@ -20,7 +20,8 @@ class App extends Component {
         <main>
           <ProductTable products={this.props.products} click={this.add_to_cart} />
         </main>
-        <FloatCart cart_products={this.state.cart} quantities={this.state.quantities} cart_open={this.state.cart_opened} close={this.closeFloatCart} open={this.openFloatCart} />
+        <FloatCart cart_products={this.state.cart} quantities={this.state.quantities} remove={this.remove_from_cart}
+          cart_open={this.state.cart_opened} close={this.closeFloatCart} open={this.openFloatCart} />
       </div>
     );
   }
@@ -33,7 +34,7 @@ class App extends Component {
     this.setState({cart_opened: false} );
   };
 
-  already_in_cart = product => {
+  find_index = product => {
     let index = 0;
     let return_value = -1;
     this.state.cart.forEach((prod) => {
@@ -45,8 +46,29 @@ class App extends Component {
     return return_value;
   }
 
+  remove_from_cart = product => {
+    let index = this.find_index(product);
+    if (index !== -1) {
+      let old_q = this.state.quantities[index];
+      let new_q;
+      if (old_q === 1) {
+        new_q = this.state.quantities.slice();
+        new_q.splice(index, 1);
+
+        let new_c = this.state.cart.slice();
+        new_c.splice(index, 1);
+
+        this.setState({ quantities: new_q, cart: new_c });
+      } else {
+        new_q = this.state.quantities.slice();
+        new_q[index] = old_q - 1;
+        this.setState({ quantities: new_q });
+      }
+    }
+  }
+
   add_to_cart = product => {
-    let index = this.already_in_cart(product); 
+    let index = this.find_index(product); 
     if (index !== -1) {
       let new_q = this.state.quantities.slice();
       new_q[index] = new_q[index] + 1;
@@ -135,51 +157,29 @@ class ProductItem extends Component {
 }
 
 class FloatCart extends Component {
-  //state = {
-  //  isOpen: this.props.cart_open,
-  //};
-  
-  removeProduct = product => {
-    const { updateCart } = this.props;
-
-    const index = this.props.cart_products.findIndex(p => p.id === product.id);
-    if (index >= 0) {
-      this.props.cart_products.splice(index, 1);
-      updateCart(this.props.cart_products);
-    }
-  };
-
-  proceedToCheckout = () => {
-    const {
-      totalPrice,
-      productQuantity,
-      currencyFormat,
-      currencyId
-    } = this.props.cartTotal;
-
+  proceedToCheckout = subtotal => {
     if (this.props.quantities.length === 0) {
       alert('Add some product in the bag!');
     } else {
       alert(
-        `Checkout - Subtotal: ${currencyFormat} ${formatPrice(
-          totalPrice,
-          currencyId
-        )}`
+        `Checkout - Subtotal: $${formatPrice(subtotal)}`
       );
     }
   };
 
   render() {
     let subtotal = 0;
+    let i = 0;
     this.props.cart_products.forEach((product) => {
-      subtotal = subtotal + product.price;
+      subtotal = subtotal + product.price * this.props.quantities[i];
+      i = i + 1;
     });
 
     let index = -1; 
     const products = this.props.cart_products.map(p => {
       index = index + 1;
       return (
-        <CartProduct product={p} removeProduct={removeProduct} quantity={this.props.quantities[index]} key={p.id} />
+        <CartProduct product={p} removeProduct={this.props.remove} quantity={this.props.quantities[index]} key={p.id} />
       );
     });
 
@@ -236,7 +236,7 @@ class FloatCart extends Component {
                 ${formatPrice(subtotal)}
               </p>
             </div>
-            <div onClick={() => this.proceedToCheckout()} className="buy-btn">
+            <div onClick={() => this.proceedToCheckout(subtotal)} className="buy-btn">
               Checkout
             </div>
           </div>
@@ -246,18 +246,7 @@ class FloatCart extends Component {
   }
 }
 
-const mapStateToProps = state => ({
-  newProduct: state.cart.productToAdd,
-  productToRemove: state.cart.productToRemove,
-  cartTotal: state.total.data
-});
-
 class CartProduct extends Component {
-  static propTypes = {
-    product: PropTypes.object.isRequired,
-    removeProduct: PropTypes.func.isRequired
-  };
-
   state = {
     isMouseOver: false
   };
@@ -271,7 +260,6 @@ class CartProduct extends Component {
   };
 
   render() {
-    const { product, removeProduct, quantity } = this.props;
     const classes = ['item'];
 
     if (!!this.state.isMouseOver) {
@@ -284,20 +272,21 @@ class CartProduct extends Component {
           className="item__del"
           onMouseOver={() => this.handleMouseOver()}
           onMouseOut={() => this.handleMouseOut()}
-          onClick={() => removeProduct(product)}
+          onClick={() => this.props.removeProduct(this.props.product)}
         />
         <div className="item__thumb">
-          <img src={require(`./static/products/${product.sku}_2.jpg`)} alt={product.title} title={product.title}/>
+          <img src={require(`./static/products/${this.props.product.sku}_2.jpg`)} alt={this.props.product.title} title={this.props.product.title}/>
         </div>
         <div className="item__details">
-          <p className="title">{product.title}</p>
+          <p className="title">{this.props.product.title}</p>
           <p className="desc">
-            {`${product.style}`} <br />
+            {`${this.props.product.style}`} <br />
             Quantity: {this.props.quantity}
           </p>
+          
         </div>
         <div className="item__price">
-          <p>{`${product.currencyFormat}  ${formatPrice(product.price)}`}</p>
+          <p>{`${this.props.product.currencyFormat}  ${formatPrice(this.props.product.price)}`}</p>
         </div>
 
         <div className="clearfix" />
@@ -314,51 +303,5 @@ const formatPrice = (x, currency) => {
       return x.toFixed(2);
   }
 };
-
-const updateCart = cart_products => dispatch => {
-  let productQuantity = cart_products.reduce((sum, p) => {
-    sum += p.quantity;
-    return sum;
-  }, 0);
-
-  let totalPrice = cart_products.reduce((sum, p) => {
-    sum += p.price * p.quantity;
-    return sum;
-  }, 0);
-
-  let installments = cart_products.reduce((greater, p) => {
-    greater = p.installments > greater ? p.installments : greater;
-    return greater;
-  }, 0);
-
-  let cartTotal = {
-    productQuantity,
-    installments,
-    totalPrice,
-    currencyId: 'USD',
-    currencyFormat: '$'
-  };
-
-  dispatch({
-    type: 'UPDATE_CART',
-    payload: cartTotal
-  });
-};
-
-const loadCart = products => ({
-  type: 'LOAD_CART',
-  payload: products
-});
-
-const addProduct = product => ({
-  type: 'ADD_PRODUCT',
-  payload: product
-});
-
-const removeProduct = product => ({
-  type: 'REMOVE_PRODUCT',
-  payload: product
-});
-
 
 export default App;
