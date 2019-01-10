@@ -1,8 +1,8 @@
-.shelf-container {
+.product-table {
   width: 60%;
   min-height: 600px;
 
-  .shelf-item {
+  .item {
     float: left;
     width: 25%;
     position: relative;
@@ -16,20 +16,9 @@
     &:hover {
       border: 1px solid #eee;
 
-      .shelf-item__buy-btn {
+      .item__buy-btn {
         background-color: goldenrod;
       }
-    }
-
-    .shelf-stopper {
-      position: absolute;
-      color: white;
-      top: 10px;
-      right: 10px;
-      padding: 5px;
-      font-size: 0.6em;
-      background-color: purple;
-      cursor: default;
     }
 
     &__thumb {
@@ -165,7 +154,7 @@
     }
   }
 
-  &__shelf-container {
+  &__product-table {
     position: relative;
     min-height: 280px;
     padding-bottom: 200px;
@@ -176,7 +165,7 @@
       line-height: 40px;
     }
 
-    .shelf-item {
+    .item {
       position: relative;
       box-sizing: border-box;
       padding: 5%;
@@ -195,7 +184,7 @@
       &--mouseover {
         background: black;
 
-        .shelf-item__details {
+        .item__details {
           .title,
           .desc {
             text-decoration: line-through;
@@ -203,7 +192,7 @@
           }
         }
 
-        .shelf-item__price {
+        .item__price {
           text-decoration: line-through;
           opacity: 0.6;
         }
@@ -302,11 +291,6 @@
     .sub-price {
       width: 80%;
       text-align: right;
-
-      &__val,
-      &__installment {
-        margin: 0;
-      }
 
       &__val {
         color: #eabf00;

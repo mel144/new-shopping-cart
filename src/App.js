@@ -4,15 +4,58 @@ import PropTypes from 'prop-types';
 import './App.scss';
 
 class App extends Component { 
+  constructor(props) {
+    super(props);
+    this.state = {
+      cart: [],
+      quantities: [],
+      cart_opened: false,
+    }
+  }
+
   render() {
+    console.log(this.state.cart_opened);
     return (
       <div className="App">
         <main>
-          <ProductTable products={this.props.products} />
+          <ProductTable products={this.props.products} click={this.add_to_cart} />
         </main>
-        <FloatCart cartProducts={[this.props.products[3]]} />
+        <FloatCart cart_products={this.state.cart} quantities={this.state.quantities} cart_open={this.state.cart_opened} close={this.closeFloatCart} open={this.openFloatCart} />
       </div>
     );
+  }
+
+  openFloatCart = () => {
+    this.setState({ cart_opened: true } );
+  };
+
+  closeFloatCart = () => {
+    this.setState({cart_opened: false} );
+  };
+
+  already_in_cart = product => {
+    let index = 0;
+    let return_value = -1;
+    this.state.cart.forEach((prod) => {
+      if (product === prod) {
+        return_value = index;
+      }
+      index = index + 1;
+    });
+    return return_value;
+  }
+
+  add_to_cart = product => {
+    let index = this.already_in_cart(product); 
+    if (index !== -1) {
+      let new_q = this.state.quantities.slice();
+      new_q[index] = new_q[index] + 1;
+      this.setState({ quantities: new_q, cart_opened: true});
+    } else {
+      let new_ = this.state.cart.concat(product);
+      let new_q = this.state.quantities.concat(1);
+      this.setState({ cart: new_, quantities: new_q, cart_opened: true});
+    }
   }
 }
 
@@ -31,9 +74,8 @@ class ProductTable extends Component {
         );
         index = index + 1;
       } else {
-        console.log(temp_row);
         rows.push(
-          <ProductRow products_in_row={temp_row} key={rows.length}/>
+          <ProductRow products_in_row={temp_row} key={rows.length} click={this.props.click}/>
         );
         index = 0;
         num_rows = num_rows + 1;
@@ -41,10 +83,8 @@ class ProductTable extends Component {
       }
     });
 
-    console.log(rows);
-
     return (
-      <div className="shelf-container">
+      <div className="product-table">
         <table>
           <tbody>{rows}</tbody>
         </table>
@@ -59,7 +99,7 @@ class ProductRow extends Component {
 
     this.props.products_in_row.forEach((product) => {
       row.push(
-        <ProductItem prod={product} key={product.sku}/>
+        <ProductItem prod={product} key={product.sku} click={this.props.click}/>
       );
     });
 
@@ -76,82 +116,36 @@ class ProductItem extends Component {
     let formattedPrice = formatPrice(this.props.prod.price, this.props.prod.currencyId);
 
     return (
-      <td className="shelf-item">
-        <div className="shelf-item__thumb">
+      <td className="item">
+        <div className="item__thumb">
           <img src={require(`./static/products/${this.props.prod.sku}_1.jpg`)} atl={this.props.prod.title} title={this.props.prod.title} />
         </div>
-        <p className="shelf-item__title">{this.props.prod.title}</p>
-        <div className="shelf-item__price">
+        <p className="item__title">{this.props.prod.title}</p>
+        <div className="item__price">
           <div className="val">
             <small>{this.props.prod.currencyFormat}</small>
             <b>{formattedPrice.substr(0, formattedPrice.length - 3)}</b>
             <span>{formattedPrice.substr(formattedPrice.length - 3, 3)}</span>
           </div>
         </div>
-        <div className="shelf-item__buy-btn">Add to cart</div>
+        <div className="item__buy-btn" onClick={() => this.props.click(this.props.prod)}> Add to cart</div>
       </td>
     );
   }
 }
 
 class FloatCart extends Component {
-  static propTypes = {
-    loadCart: PropTypes.func.isRequired,
-    updateCart: PropTypes.func.isRequired,
-    cartProducts: PropTypes.array.isRequired,
-    newProduct: PropTypes.object,
-    removeProduct: PropTypes.func,
-    productToRemove: PropTypes.object
-  };
-
-  state = {
-    isOpen: true
-  };
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.newProduct !== this.props.newProduct) {
-      this.addProduct(nextProps.newProduct);
-    }
-
-    if (nextProps.productToRemove !== this.props.productToRemove) {
-      this.removeProduct(nextProps.productToRemove);
-    }
-  }
-
-  openFloatCart = () => {
-    this.setState({ isOpen: true });
-  };
-
-  closeFloatCart = () => {
-    this.setState({ isOpen: false });
-  };
-
-  addProduct = product => {
-    const { cartProducts, updateCart } = this.props;
-    let productAlreadyInCart = false;
-
-    cartProducts.forEach(cp => {
-      if (cp.id === product.id) {
-        cp.quantity += product.quantity;
-        productAlreadyInCart = true;
-      }
-    });
-
-    if (!productAlreadyInCart) {
-      cartProducts.push(product);
-    }
-
-    updateCart(cartProducts);
-    this.openFloatCart();
-  };
-
+  //state = {
+  //  isOpen: this.props.cart_open,
+  //};
+  
   removeProduct = product => {
-    const { cartProducts, updateCart } = this.props;
+    const { updateCart } = this.props;
 
-    const index = cartProducts.findIndex(p => p.id === product.id);
+    const index = this.props.cart_products.findIndex(p => p.id === product.id);
     if (index >= 0) {
-      cartProducts.splice(index, 1);
-      updateCart(cartProducts);
+      this.props.cart_products.splice(index, 1);
+      updateCart(this.props.cart_products);
     }
   };
 
@@ -163,7 +157,7 @@ class FloatCart extends Component {
       currencyId
     } = this.props.cartTotal;
 
-    if (!productQuantity) {
+    if (this.props.quantities.length === 0) {
       alert('Add some product in the bag!');
     } else {
       alert(
@@ -176,28 +170,31 @@ class FloatCart extends Component {
   };
 
   render() {
-    const { cartTotal, cartProducts, removeProduct } = this.props;
+    let subtotal = 0;
+    this.props.cart_products.forEach((product) => {
+      subtotal = subtotal + product.price;
+    });
 
-    console.log(cartTotal);
-
-    const products = cartProducts.map(p => {
+    let index = -1; 
+    const products = this.props.cart_products.map(p => {
+      index = index + 1;
       return (
-        <CartProduct product={p} removeProduct={removeProduct} key={p.id} />
+        <CartProduct product={p} removeProduct={removeProduct} quantity={this.props.quantities[index]} key={p.id} />
       );
     });
 
     let classes = ['float-cart'];
 
-    if (!!this.state.isOpen) {
+    if (!!this.props.cart_open) {
       classes.push('float-cart--open');
     }
 
     return (
       <div className={classes.join(' ')}>
         {/* If cart open, show close (x) button */}
-        {this.state.isOpen && (
+        {this.props.cart_open && (
           <div
-            onClick={() => this.closeFloatCart()}
+            onClick={() => this.props.close()}
             className="float-cart__close-btn"
           >
             X
@@ -205,9 +202,9 @@ class FloatCart extends Component {
         )}
 
         {/* If cart is closed, show bag with quantity of product and open cart action */}
-        {!this.state.isOpen && (
+        {!this.props.cart_open && (
           <span
-            onClick={() => this.openFloatCart()}
+            onClick={() => this.props.open()}
             className="bag bag--float-cart-closed"
           >
             <span className="bag__quantity">{1}</span>
@@ -222,7 +219,7 @@ class FloatCart extends Component {
             <span className="header-title">Bag</span>
           </div>
 
-          <div className="float-cart__shelf-container">
+          <div className="float-cart__product-table">
             {products}
             {!products.length && (
               <p className="shelf-empty">
@@ -236,7 +233,7 @@ class FloatCart extends Component {
             <div className="sub">SUBTOTAL</div>
             <div className="sub-price">
               <p className="sub-price__val">
-                14.00
+                ${formatPrice(subtotal)}
               </p>
             </div>
             <div onClick={() => this.proceedToCheckout()} className="buy-btn">
@@ -250,7 +247,6 @@ class FloatCart extends Component {
 }
 
 const mapStateToProps = state => ({
-  cartProducts: state.cart.products,
   newProduct: state.cart.productToAdd,
   productToRemove: state.cart.productToRemove,
   cartTotal: state.total.data
@@ -275,33 +271,32 @@ class CartProduct extends Component {
   };
 
   render() {
-    const { product, removeProduct } = this.props;
-
-    const classes = ['shelf-item'];
+    const { product, removeProduct, quantity } = this.props;
+    const classes = ['item'];
 
     if (!!this.state.isMouseOver) {
-      classes.push('shelf-item--mouseover');
+      classes.push('item--mouseover');
     }
 
     return (
       <div className={classes.join(' ')}>
         <div
-          className="shelf-item__del"
+          className="item__del"
           onMouseOver={() => this.handleMouseOver()}
           onMouseOut={() => this.handleMouseOut()}
           onClick={() => removeProduct(product)}
         />
-        <div className="shelf-item__thumb">
+        <div className="item__thumb">
           <img src={require(`./static/products/${product.sku}_2.jpg`)} alt={product.title} title={product.title}/>
         </div>
-        <div className="shelf-item__details">
+        <div className="item__details">
           <p className="title">{product.title}</p>
           <p className="desc">
             {`${product.style}`} <br />
-            Quantity: {product.quantity}
+            Quantity: {this.props.quantity}
           </p>
         </div>
-        <div className="shelf-item__price">
+        <div className="item__price">
           <p>{`${product.currencyFormat}  ${formatPrice(product.price)}`}</p>
         </div>
 
@@ -319,5 +314,51 @@ const formatPrice = (x, currency) => {
       return x.toFixed(2);
   }
 };
+
+const updateCart = cart_products => dispatch => {
+  let productQuantity = cart_products.reduce((sum, p) => {
+    sum += p.quantity;
+    return sum;
+  }, 0);
+
+  let totalPrice = cart_products.reduce((sum, p) => {
+    sum += p.price * p.quantity;
+    return sum;
+  }, 0);
+
+  let installments = cart_products.reduce((greater, p) => {
+    greater = p.installments > greater ? p.installments : greater;
+    return greater;
+  }, 0);
+
+  let cartTotal = {
+    productQuantity,
+    installments,
+    totalPrice,
+    currencyId: 'USD',
+    currencyFormat: '$'
+  };
+
+  dispatch({
+    type: 'UPDATE_CART',
+    payload: cartTotal
+  });
+};
+
+const loadCart = products => ({
+  type: 'LOAD_CART',
+  payload: products
+});
+
+const addProduct = product => ({
+  type: 'ADD_PRODUCT',
+  payload: product
+});
+
+const removeProduct = product => ({
+  type: 'REMOVE_PRODUCT',
+  payload: product
+});
+
 
 export default App;
