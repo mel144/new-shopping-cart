@@ -9,7 +9,7 @@
     text-align: center;
     box-sizing: border-box;
     padding: 10px;
-    margin-bottom: 30px;
+    margin-bottom: 120px;
     border: 1px solid transparent;
     cursor: pointer;
 
@@ -56,12 +56,13 @@
     }
 
     &__buy-btn {
-      background-color: black;
+      background-color: darkgray;
       color: #fff;
+      width: 25%;
+      height: 50%;
       padding: 15px 0;
-      margin-top: 10px;
       cursor: pointer;
-      border-bottom: 2px solid #151419;
+      border-radius: 100px;
       transition: background-color 0.2s;
     }
   }
@@ -96,7 +97,6 @@
       background-color: #212027;
     }
   }
-
   .bag {
     width: 40px;
     height: 40px;
@@ -166,6 +166,7 @@
     }
 
     .item {
+      margin-bottom: 120px;
       position: relative;
       box-sizing: border-box;
       padding: 5%;
@@ -182,38 +183,24 @@
       }
 
       &--mouseover {
-        background-color: goldenrod;
-
         .item__details {
-          .title,
-          .desc {
+          .quantity{
             text-decoration: underline;
-            opacity: 0.6;
-          }
-        }
-
-        .item__price {
-          text-decoration: underline;
-          opacity: 0.6;
+            }
         }
       }
 
       &__del {
         width: 16px;
         height: 16px;
-        top: 15px;
-        right: 5%;
+        float: right;
         border-radius: 50%;
-        position: absolute;
+        position: relative;
         background-size: auto 100%;
         background-image: url('./static/sprite_delete-icon.png');
         background-repeat: no-repeat;
         z-index: 2;
         cursor: pointer;
-
-        &:hover {
-          background-position-x: -17px;
-        }
       }
 
       &__thumb,
@@ -221,6 +208,7 @@
       &__price {
         display: inline-block;
         vertical-align: middle;
+        float: left;
       }
 
       &__thumb {

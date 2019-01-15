@@ -14,7 +14,6 @@ class App extends Component {
   }
 
   render() {
-    console.log(this.state.cart_opened);
     return (
       <div className="App">
         <main>
@@ -46,36 +45,48 @@ class App extends Component {
     return return_value;
   }
 
-  remove_from_cart = product => {
+  remove_from_cart = (product, size) => {
     let index = this.find_index(product);
     if (index !== -1) {
       let old_q = this.state.quantities[index];
       let new_q;
-      if (old_q === 1) {
+      if (old_q[size] === 1) {
         new_q = this.state.quantities.slice();
-        new_q.splice(index, 1);
-
-        let new_c = this.state.cart.slice();
-        new_c.splice(index, 1);
-
-        this.setState({ quantities: new_q, cart: new_c });
+        let new_d = new_q[index];
+        delete new_d[size]
+        if (Object.keys(new_d).length === 0) {
+          let new_c = this.state.cart.slice();
+          new_c.splice(index, 1);
+          this.setState({ cart: new_c });
+        }
+        this.setState({ quantities: new_q});
       } else {
-        new_q = this.state.quantities.slice();
-        new_q[index] = old_q - 1;
-        this.setState({ quantities: new_q });
+        let new_q = this.state.quantities.slice();
+        new_q[index][size]--;
+        this.setState({ quantities: new_q, cart_opened: true });
       }
     }
   }
 
-  add_to_cart = product => {
+  add_to_cart = (product, size) => {
     let index = this.find_index(product); 
     if (index !== -1) {
       let new_q = this.state.quantities.slice();
-      new_q[index] = new_q[index] + 1;
-      this.setState({ quantities: new_q, cart_opened: true});
+      let old_v = 0;
+      if (new_q[index].hasOwnProperty(size)) {
+        new_q[index][size]++;
+      } else {
+        new_q[index][size] = 1;
+      }
+      
+      if (old_v < product.availableSizes[size]) {
+        this.setState({ quantities: new_q, cart_opened: true });
+      }
     } else {
       let new_ = this.state.cart.concat(product);
-      let new_q = this.state.quantities.concat(1);
+      let new_d = {};
+      new_d[size] = 1;
+      let new_q = this.state.quantities.concat(new_d);
       this.setState({ cart: new_, quantities: new_q, cart_opened: true});
     }
   }
@@ -136,6 +147,11 @@ class ProductRow extends Component {
 class ProductItem extends Component {
   render() {
     let formattedPrice = formatPrice(this.props.prod.price, this.props.prod.currencyId);
+    let size_options = Object.entries(this.props.prod.availableSizes).map(([s, q]) => {
+      return (
+        <button className="item__buy-btn" onClick={() => this.props.click(this.props.prod, s)}>{s}</button>
+      );
+    });
 
     return (
       <td className="item">
@@ -150,7 +166,7 @@ class ProductItem extends Component {
             <span>{formattedPrice.substr(formattedPrice.length - 3, 3)}</span>
           </div>
         </div>
-        <div className="item__buy-btn" onClick={() => this.props.click(this.props.prod)}> Add to cart</div>
+        {size_options}
       </td>
     );
   }
@@ -170,8 +186,12 @@ class FloatCart extends Component {
   render() {
     let subtotal = 0;
     let i = 0;
+    console.log(this.props.quantities)
     this.props.cart_products.forEach((product) => {
-      subtotal = subtotal + product.price * this.props.quantities[i];
+      let quantities = this.props.quantities[i];
+      Object.entries(quantities).map(([s, q]) => {
+        subtotal = subtotal + product.price * q;
+      });
       i = i + 1;
     });
 
@@ -265,30 +285,37 @@ class CartProduct extends Component {
     if (!!this.state.isMouseOver) {
       classes.push('item--mouseover');
     }
+    
+    let quantities = Object.entries(this.props.quantity).map(([s, q]) => {
+      return (
+        <div className="quantity">
+            {s}: {q}
+          <div
+            className="item__del"
+            onMouseOver={() => this.handleMouseOver()}
+            onMouseOut={() => this.handleMouseOut()}
+            onClick={() => this.props.removeProduct(this.props.product, s)}
+            />
+        </div>
+
+      );
+    });
 
     return (
       <div className={classes.join(' ')}>
-        <div
-          className="item__del"
-          onMouseOver={() => this.handleMouseOver()}
-          onMouseOut={() => this.handleMouseOut()}
-          onClick={() => this.props.removeProduct(this.props.product)}
-        />
         <div className="item__thumb">
           <img src={require(`./static/products/${this.props.product.sku}_2.jpg`)} alt={this.props.product.title} title={this.props.product.title}/>
         </div>
         <div className="item__details">
           <p className="title">{this.props.product.title}</p>
-          <p className="desc">
-            {`${this.props.product.style}`} <br />
-            Quantity: {this.props.quantity}
-          </p>
-          
+          <div className="desc">
+            {`${this.props.product.style}`} 
+            {quantities}
+          </div>
         </div>
         <div className="item__price">
           <p>{`${this.props.product.currencyFormat}  ${formatPrice(this.props.product.price)}`}</p>
         </div>
-
         <div className="clearfix" />
       </div>
     );

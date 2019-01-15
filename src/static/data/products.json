@@ -9,7 +9,13 @@
       "price": 10.9,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 2,
+        "M": 1,
+        "L": 1,
+        "XL": 1
+      }
     },
 
     {
@@ -21,7 +27,12 @@
       "price": 29.45,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 2,
+        "M": 1,
+        "L": 4
+      }
     },
 
     {
@@ -33,7 +44,13 @@
       "price": 9.0,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 2,
+        "M": 5,
+        "L": 5,
+        "XL": 5
+      }
     },
 
     {
@@ -45,7 +62,13 @@
       "price": 14.0,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 2,
+        "M": 3,
+        "L": 1,
+        "XL": 5
+      }
     },
 
     {
@@ -57,7 +80,13 @@
       "price": 13.25,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 2,
+        "M": 0,
+        "L": 5,
+        "XL": 1
+      }
     },
 
     {
@@ -69,7 +98,13 @@
       "price": 75.0,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 1,
+        "M": 0,
+        "L": 4,
+        "XL": 5
+      }
     },
 
     {
@@ -81,7 +116,13 @@
       "price": 10.9,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 1,
+        "M": 2,
+        "L": 0,
+        "XL": 2
+      }
     },
 
     {
@@ -93,7 +134,13 @@
       "price": 10.9,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 2,
+        "M": 2,
+        "L": 2,
+        "XL": 5
+      }
     },
 
     {
@@ -105,7 +152,13 @@
       "price": 14.9,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 2,
+        "M": 1,
+        "L": 5,
+        "XL": 5
+      }
     },
 
     {
@@ -117,7 +170,13 @@
       "price": 14.9,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 2,
+        "M": 3,
+        "L": 1,
+        "XL": 5
+      }
     },
 
     {
@@ -129,7 +188,13 @@
       "price": 25.9,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": false
+      "isFreeShipping": false,
+      "availableSizes": {
+        "S": 1,
+        "M": 1,
+        "L": 4,
+        "XL": 5
+      }
     },
 
     {
@@ -141,7 +206,13 @@
       "price": 10.9,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": false
+      "isFreeShipping": false,
+      "availableSizes": {
+        "S": 0,
+        "M": 0,
+        "L": 4,
+        "XL": 5
+      }
     },
 
     {
@@ -153,7 +224,13 @@
       "price": 49.9,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 1,
+        "M": 0,
+        "L": 2,
+        "XL": 5
+      }
     },
 
     {
@@ -165,7 +242,13 @@
       "price": 22.5,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 1,
+        "M": 0,
+        "L": 2,
+        "XL": 5
+      }
     },
 
     {
@@ -177,7 +260,13 @@
       "price": 18.7,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": false
+      "isFreeShipping": false,
+      "availableSizes": {
+        "S": 2,
+        "M": 0,
+        "L": 0,
+        "XL": 5
+      }
     },
 
     {
@@ -189,7 +278,13 @@
       "price": 134.9,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 2,
+        "M": 3,
+        "L": 2,
+        "XL": 1
+      }
     },
 
     {
@@ -201,7 +296,13 @@
       "price": 49.0,
       "currencyId": "USD",
       "currencyFormat": "$",
-      "isFreeShipping": true
+      "isFreeShipping": true,
+      "availableSizes": {
+        "S": 0,
+        "M": 1,
+        "L": 4,
+        "XL": 5
+      }
     }
   ]
 }
