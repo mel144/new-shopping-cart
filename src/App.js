@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-//import './App.css';
 import './App.scss';
 
 class App extends Component { 
@@ -149,14 +147,14 @@ class ProductItem extends Component {
     let formattedPrice = formatPrice(this.props.prod.price, this.props.prod.currencyId);
     let size_options = Object.entries(this.props.prod.availableSizes).map(([s, q]) => {
       return (
-        <button className="item__buy-btn" onClick={() => this.props.click(this.props.prod, s)}>{s}</button>
+        <button className="item__buy-btn" key={s} onClick={() => this.props.click(this.props.prod, s)}>{s}</button>
       );
     });
 
     return (
       <td className="item">
         <div className="item__thumb">
-          <img src={require(`./static/products/${this.props.prod.sku}_1.jpg`)} atl={this.props.prod.title} title={this.props.prod.title} />
+          <img src={require(`./static/products/${this.props.prod.sku}_1.jpg`)} alt={this.props.prod.SKU} title={this.props.prod.title} />
         </div>
         <p className="item__title">{this.props.prod.title}</p>
         <div className="item__price">
@@ -186,11 +184,11 @@ class FloatCart extends Component {
   render() {
     let subtotal = 0;
     let i = 0;
-    console.log(this.props.quantities)
     this.props.cart_products.forEach((product) => {
       let quantities = this.props.quantities[i];
       Object.entries(quantities).map(([s, q]) => {
         subtotal = subtotal + product.price * q;
+        return null //to suppress a warning from map
       });
       i = i + 1;
     });
@@ -288,7 +286,7 @@ class CartProduct extends Component {
     
     let quantities = Object.entries(this.props.quantity).map(([s, q]) => {
       return (
-        <div className="quantity">
+        <div className="quantity" id={s}>
             {s}: {q}
           <div
             className="item__del"

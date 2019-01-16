@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -22,7 +22,7 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <title>New Shopping Cart</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -38,4 +38,17 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
   </body>
+  <script src="https://www.gstatic.com/firebasejs/5.7.3/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyCFZ8JEI2qXwFfOLOtCSDDj-wqnVrRaZsU",
+      authDomain: "new-shopping-cart-50ad0.firebaseapp.com",
+      databaseURL: "https://new-shopping-cart-50ad0.firebaseio.com",
+      projectId: "new-shopping-cart-50ad0",
+      storageBucket: "new-shopping-cart-50ad0.appspot.com",
+      messagingSenderId: "247828646524"
+    };
+    firebase.initializeApp(config);
+  </script>
 </html>
