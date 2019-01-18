@@ -1,10 +1,10 @@
 .product-table {
-  width: 60%;
+  width: 90%;
   min-height: 600px;
 
   .item {
     float: left;
-    width: 25%;
+    width: 200px;
     position: relative;
     text-align: center;
     box-sizing: border-box;
@@ -15,10 +15,6 @@
 
     &:hover {
       border: 1px solid #eee;
-
-      .item__buy-btn {
-        background-color: goldenrod;
-      }
     }
 
     &__thumb {
@@ -67,11 +63,16 @@
     }
   }
 }
+
+.item__buy-btn:hover{
+  background-color: goldenrod;
+  }
+
 .float-cart {
   position: fixed;
   top: 0;
-  right: -25%;
-  width: 25%;
+  right: -275px;
+  width: 275px;
   height: 100%;
   background-color: darkgrey;
   box-sizing: border-box;

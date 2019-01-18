@@ -92,52 +92,18 @@ class App extends Component {
 
 class ProductTable extends Component {
   render() {
-    const rows = [];
-    let num_in_row = 4;
-    let temp_row = [];
-    let index = 0;
-    let num_rows = 0;
+    const items = [];
 
     this.props.products.forEach((product) => {
-      if (index < num_in_row) {
-        temp_row.push(
-          product
-        );
-        index = index + 1;
-      } else {
-        rows.push(
-          <ProductRow products_in_row={temp_row} key={rows.length} click={this.props.click}/>
-        );
-        index = 0;
-        num_rows = num_rows + 1;
-        temp_row = [];
-      }
-    });
-
-    return (
-      <div className="product-table">
-        <table>
-          <tbody>{rows}</tbody>
-        </table>
-      </div>
-    );
-  }
-}
-
-class ProductRow extends Component {
-  render() {
-    let row = [];
-
-    this.props.products_in_row.forEach((product) => {
-      row.push(
-        <ProductItem prod={product} key={product.sku} click={this.props.click}/>
+      items.push(
+        <ProductItem prod={product} key={product.sku} click={this.props.click} />
       );
     });
 
     return (
-      <tr>
-        {row}
-      </tr>
+      <div className="product-table">
+          <div>{items}</div>
+      </div>
     );
   }
 }
@@ -152,7 +118,7 @@ class ProductItem extends Component {
     });
 
     return (
-      <td className="item">
+      <div className="item">
         <div className="item__thumb">
           <img src={require(`./static/products/${this.props.prod.sku}_1.jpg`)} alt={this.props.prod.SKU} title={this.props.prod.title} />
         </div>
@@ -165,7 +131,7 @@ class ProductItem extends Component {
           </div>
         </div>
         {size_options}
-      </td>
+      </div>
     );
   }
 }
@@ -286,7 +252,7 @@ class CartProduct extends Component {
     
     let quantities = Object.entries(this.props.quantity).map(([s, q]) => {
       return (
-        <div className="quantity" id={s}>
+        <div className="quantity" id={s} key={s}>
             {s}: {q}
           <div
             className="item__del"
