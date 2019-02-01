@@ -64,6 +64,35 @@
   }
 }
 
+.filter{
+  text-align: left;
+  width: 75%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding-left: 10px;
+  }
+
+.filter-button {
+  width: 40px;
+  height: 40px;
+  margin-left: 40px;
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+  border-radius: 60px;
+}
+
+.filter-button.selected {
+  width: 40px;
+  height: 40px;
+  margin-left: 40px;
+  border: 1px solid black;
+  border-radius: 60px;
+  background-color: black;
+  color: white;
+}
+
+
 .item__buy-btn:hover{
   background-color: goldenrod;
   }

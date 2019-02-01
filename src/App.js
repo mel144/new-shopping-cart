@@ -8,19 +8,79 @@ class App extends Component {
       cart: [],
       quantities: [],
       cart_opened: false,
+      products_shown: this.props.products,
+      filter_buttons: ["S", "M", "L", "XL"],
+      filter_status: [false, false, false, false]
     }
   }
 
   render() {
-    return (
+    let shown = [];
+
+    this.props.products.forEach((prod) => {
+      if (this.should_show(prod)) {
+        shown.push(prod);
+      }
+    });
+
+     return (
+
       <div className="App">
         <main>
-          <ProductTable products={this.props.products} click={this.add_to_cart} />
+          <Filter click={this.toggle_button} filter_buttons={this.state.filter_buttons} status={this.state.filter_status} />
+          <ProductTable products={shown} click={this.add_to_cart} />
         </main>
         <FloatCart cart_products={this.state.cart} quantities={this.state.quantities} remove={this.remove_from_cart}
           cart_open={this.state.cart_opened} close={this.closeFloatCart} open={this.openFloatCart} />
       </div>
     );
+  }
+
+  toggle_button = s => {
+    let index = 0;
+    let found = -1;
+    this.state.filter_buttons.forEach((name) => {
+      if (name === s) {
+        found = index;
+      }
+      index = index + 1;
+    });
+    let new_status = this.state.filter_status.slice();
+    new_status[found] = !new_status[found];
+
+    this.setState({
+      filter_status: new_status
+    });
+  }
+
+  should_show = product => {
+      let index = 0;
+    let found_true = false;
+    let true_indicies = [];
+
+    this.state.filter_status.forEach((b) => {
+      if (b) {
+        found_true = true;
+        true_indicies.push(index);
+      }
+      index = index + 1;
+    });
+
+    if (!found_true) {
+      return true;
+    }
+
+    let return_val = false;
+    this.state.filter_buttons.forEach((size) => {
+      let available = product["availableSizes"];
+      true_indicies.forEach((i) => {
+        if (available[this.state.filter_buttons[i]] > 0) {
+          return_val = true;
+        }
+      });
+    });
+    
+    return return_val;
   }
 
   openFloatCart = () => {
@@ -90,6 +150,28 @@ class App extends Component {
   }
 }
 
+class Filter extends Component {
+  render() {
+    const buttons = [];
+    let index = 0;
+    this.props.filter_buttons.forEach((s) => {
+      if (this.props.status[index]) {
+        buttons.push(<button key={index} className="filter-button selected" onClick={() => this.props.click(s)}> {s} </button>)
+      } else {
+        buttons.push(<button key={index} className="filter-button" onClick={() => this.props.click(s)}>{s}</button>)
+      }
+      index = index + 1;
+    });
+
+    return (
+      <div className="filter">
+        Sizes:
+        {buttons}
+      </div>
+      )
+  }
+}
+
 class ProductTable extends Component {
   render() {
     const items = [];
@@ -112,9 +194,11 @@ class ProductItem extends Component {
   render() {
     let formattedPrice = formatPrice(this.props.prod.price, this.props.prod.currencyId);
     let size_options = Object.entries(this.props.prod.availableSizes).map(([s, q]) => {
-      return (
-        <button className="item__buy-btn" key={s} onClick={() => this.props.click(this.props.prod, s)}>{s}</button>
-      );
+      if (q > 0) {
+        return (
+          <button className="item__buy-btn" key={s} onClick={() => this.props.click(this.props.prod, s)}>{s}</button>
+        );
+      }
     });
 
     return (
