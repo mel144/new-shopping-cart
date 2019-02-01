@@ -132,7 +132,11 @@ class App extends Component {
       let new_q = this.state.quantities.slice();
       let old_v = 0;
       if (new_q[index].hasOwnProperty(size)) {
-        new_q[index][size]++;
+        if (new_q[index][size] < product["availableSizes"][size]) {
+          new_q[index][size]++;
+        } else {
+          alert("Sorry, that's all we have in that size!");
+        }
       } else {
         new_q[index][size] = 1;
       }
@@ -198,6 +202,8 @@ class ProductItem extends Component {
         return (
           <button className="item__buy-btn" key={s} onClick={() => this.props.click(this.props.prod, s)}>{s}</button>
         );
+      } else {
+        return (<div></div>)
       }
     });
 
