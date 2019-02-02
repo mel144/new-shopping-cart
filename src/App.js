@@ -1,5 +1,12 @@
 import React, { Component } from 'react';
 import './App.scss';
+import firebase from "firebase";
+import StyleFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
+
+firebase.initializeApp({
+  apiKey: "AIzaSyCFZ8JEI2qXwFfOLOtCSDDj-wqnVrRaZsU",
+  authDomain: "new-shopping-cart-50ad0.firebaseapp.com"
+});
 
 class App extends Component { 
   constructor(props) {
@@ -10,9 +17,27 @@ class App extends Component {
       cart_opened: false,
       products_shown: this.props.products,
       filter_buttons: ["S", "M", "L", "XL"],
-      filter_status: [false, false, false, false]
+      filter_status: [false, false, false, false],
+      isSignedIn: false
     }
   }
+
+  uiConfig = {
+    singInFlow: "popup",
+    signInOptions: [
+      firebase.auth.GoogleAuthProvider.PROVIDER_ID
+    ],
+    callbacks: {
+      signInSuccessWithAuthResult: () => false
+    }
+  };
+
+  componentDidMount = () => {
+    firebase.auth().onAuthStateChanged(user => {
+      this.setState({ isSignedIn: !!user })
+      console.log(user);
+    })
+  };
 
   render() {
     let shown = [];
@@ -26,7 +51,19 @@ class App extends Component {
      return (
 
       <div className="App">
-        <main>
+         <main>
+           {this.state.isSignedIn ? (
+             <div className="authentication">
+               <div>Welcome {firebase.auth().currentUser.displayName}</div>
+               <button onClick={() => firebase.auth().signOut()}>Sign out</button>
+            </div>
+           ) : (
+                 <StyleFirebaseAuth
+                   uiConfig={this.uiConfig}
+                   firebaseAuth={firebase.auth()}
+                   />
+               )
+           }
           <Filter click={this.toggle_button} filter_buttons={this.state.filter_buttons} status={this.state.filter_status} />
           <ProductTable products={shown} click={this.add_to_cart} />
         </main>
@@ -203,7 +240,7 @@ class ProductItem extends Component {
           <button className="item__buy-btn" key={s} onClick={() => this.props.click(this.props.prod, s)}>{s}</button>
         );
       } else {
-        return (<div></div>)
+        return 
       }
     });
 

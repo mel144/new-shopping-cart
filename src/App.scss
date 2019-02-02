@@ -73,9 +73,9 @@
   }
 
 .filter-button {
-  width: 40px;
-  height: 40px;
-  margin-left: 40px;
+  width: 35px;
+  height: 35px;
+  margin-left: 30px;
   background-color: white;
   color: black;
   border: 1px solid black;
@@ -83,15 +83,25 @@
 }
 
 .filter-button.selected {
-  width: 40px;
-  height: 40px;
-  margin-left: 40px;
+  width: 35px;
+  height: 35px;
+  margin-left: 30px;
   border: 1px solid black;
   border-radius: 60px;
   background-color: black;
   color: white;
 }
 
+.authentication{
+  margin-left: 10px;
+  margin-top: 10px;
+  text-align: right;
+  padding-right: 30%;
+  }
+
+#firebaseui_container{
+  width: 100%;
+  }
 
 .item__buy-btn:hover{
   background-color: goldenrod;
