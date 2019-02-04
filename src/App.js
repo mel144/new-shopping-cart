@@ -2,23 +2,67 @@ import React, { Component } from 'react';
 import './App.scss';
 import firebase from "firebase";
 import StyleFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
+import 'firebase/database';
 
 firebase.initializeApp({
   apiKey: "AIzaSyCFZ8JEI2qXwFfOLOtCSDDj-wqnVrRaZsU",
-  authDomain: "new-shopping-cart-50ad0.firebaseapp.com"
+  authDomain: "new-shopping-cart-50ad0.firebaseapp.com",
+  databaseURL: "https://new-shopping-cart-50ad0.firebaseio.com/",
+  storageBucket: "new-shopping-cart-50ad0.appspot.com",
 });
+
+var g_user;
+var product_buffer;
 
 class App extends Component { 
   constructor(props) {
     super(props);
+
+    firebase.database().ref('product_list').on('value',
+      function (snapshot) {
+        product_buffer = snapshot.val();
+        console.log(snapshot.val());
+        return snapshot;
+      });
+
+    console.log(product_buffer);
+
     this.state = {
-      cart: [],
+      cart: {},
       quantities: [],
       cart_opened: false,
-      products_shown: this.props.products,
+      products_show: [],
+      all_products: product_buffer,
       filter_buttons: ["S", "M", "L", "XL"],
       filter_status: [false, false, false, false],
-      isSignedIn: false
+      isSignedIn: false,
+      database: firebase.database().ref('users/default').orderByChild('1').once('value',
+        function (snapshot) {
+          let temp_database = [];
+          snapshot.forEach((child) => {
+
+            temp_database[child.key] = child.val();
+          })
+
+          return temp_database;
+        })
+    }
+  }
+
+  write_cart = () => {
+    if (this.state.isSignedIn) {
+      return firebase.database().ref('users/' + g_user.id + '/cart').orderByChild('1').once('value',
+        function (snapshot) {
+          let temp_database = [];
+          snapshot.forEach((child) => {
+
+            temp_database[child.key] = child.val();
+          })
+
+          return temp_database;
+        });
+    } else {
+      return [];
     }
   }
 
@@ -36,9 +80,51 @@ class App extends Component {
     firebase.auth().onAuthStateChanged(user => {
       this.setState({ isSignedIn: !!user })
       console.log(user);
+      g_user = user;
+      let temp_database = [];
+      
+      if (this.state.isSignedIn) {
+        let new_string = 'users/' + user.uid + '/cart';
+        
+        firebase.database().ref(new_string).orderByChild('1').once('value',
+          function (snapshot) {
+            snapshot.forEach((child) => {
+              temp_database[child.key] = child.val();
+            })
+          });
+
+        if (temp_database.length == 0) {
+          let id = user.uid;
+          
+          let temp = this.state.cart;
+          if (temp.length == 0) {
+            firebase.database().ref('users/' + id).set({
+              "cart": null
+            });
+          } else {
+            firebase.database().ref('users/' + id + '/cart').set({
+              temp
+            },
+              function (error) {
+                if (error) {
+                  console.log("fail");
+                } else {
+                  console.log("success");
+                }
+              });
+          }
+          console.log(user.uid);
+          console.log(this.state.cart);
+        }
+
+      } else {
+        this.setState({
+          cart: temp_database
+        });
+      }
     })
   };
-
+  
   render() {
     let shown = [];
 
@@ -47,6 +133,8 @@ class App extends Component {
         shown.push(prod);
       }
     });
+
+    console.log(this.props.all_products);
 
      return (
 
@@ -66,8 +154,8 @@ class App extends Component {
            }
           <Filter click={this.toggle_button} filter_buttons={this.state.filter_buttons} status={this.state.filter_status} />
           <ProductTable products={shown} click={this.add_to_cart} />
-        </main>
-        <FloatCart cart_products={this.state.cart} quantities={this.state.quantities} remove={this.remove_from_cart}
+         </main>
+         <FloatCart all_products={this.state.all_products} cart_products={this.state.cart} remove={this.remove_from_cart}
           cart_open={this.state.cart_opened} close={this.closeFloatCart} open={this.openFloatCart} />
       </div>
     );
@@ -163,31 +251,44 @@ class App extends Component {
     }
   }
 
+  update_firebase_cart = () => {
+    if (this.state.isSignedIn) {
+      let temp = this.state.cart;
+      firebase.database().ref('users/' + g_user.id + '/cart').set({
+        temp
+      },
+        function (error) {
+          if (error) {
+            console.log("fail");
+          } else {
+            console.log("success");
+          }
+        });
+    }
+  };
+
   add_to_cart = (product, size) => {
-    let index = this.find_index(product); 
-    if (index !== -1) {
-      let new_q = this.state.quantities.slice();
-      let old_v = 0;
-      if (new_q[index].hasOwnProperty(size)) {
-        if (new_q[index][size] < product["availableSizes"][size]) {
-          new_q[index][size]++;
+    let new_q = this.state.quantities.slice();
+    if (product.id in new_q) {
+      if (size in new_q[product.id]) {
+        if (new_q[product.id][size] < product["availableSizes"][size]) {
+          new_q[product.id][size]++;
         } else {
           alert("Sorry, that's all we have in that size!");
         }
       } else {
-        new_q[index][size] = 1;
+        new_q[product.id][size] = 1;
       }
       
-      if (old_v < product.availableSizes[size]) {
-        this.setState({ quantities: new_q, cart_opened: true });
-      }
+      this.setState({ cart: new_q, cart_opened: true });
     } else {
-      let new_ = this.state.cart.concat(product);
       let new_d = {};
       new_d[size] = 1;
-      let new_q = this.state.quantities.concat(new_d);
-      this.setState({ cart: new_, quantities: new_q, cart_opened: true});
+      new_q[product.id] = new_d;
+      this.setState({ cart: new_q, cart_opened: true});
     }
+
+    this.update_firebase_cart();
   }
 }
 
@@ -265,7 +366,7 @@ class ProductItem extends Component {
 
 class FloatCart extends Component {
   proceedToCheckout = subtotal => {
-    if (this.props.quantities.length === 0) {
+    if (this.props.cart.length === 0) {
       alert('Add some product in the bag!');
     } else {
       alert(
@@ -274,24 +375,29 @@ class FloatCart extends Component {
     }
   };
 
-  render() {
-    let subtotal = 0;
-    let i = 0;
-    this.props.cart_products.forEach((product) => {
-      let quantities = this.props.quantities[i];
-      Object.entries(quantities).map(([s, q]) => {
-        subtotal = subtotal + product.price * q;
-        return null //to suppress a warning from map
-      });
-      i = i + 1;
+  find_product = (i) => {
+    let ret_product = null;
+    console.log(this.props.all_products);
+    Object.entries(this.props.all_products).map((product) => {
+      if (product.id === i) {
+        ret_product = product;
+      }
     });
 
-    let index = -1; 
-    const products = this.props.cart_products.map(p => {
-      index = index + 1;
-      return (
-        <CartProduct product={p} removeProduct={this.props.remove} quantity={this.props.quantities[index]} key={p.id} />
-      );
+    return ret_product;
+  };
+
+  render() {
+    let subtotal = 0;
+    const products = Object.entries(this.props.cart_products).map(([product_id, quantities]) => {
+      let product = this.find_product(product_id);
+      if (product !== null) {
+        Object.entries(quantities).map(([s, q]) => {
+          subtotal = subtotal + product.price * q;
+          return null; //to suppress a warning from map
+        });
+      }
+      return <CartProduct product={product} removeProduct={this.props.remove} quantity={quantities} key={product_id} />;
     });
 
     let classes = ['float-cart'];
@@ -395,7 +501,7 @@ class CartProduct extends Component {
     return (
       <div className={classes.join(' ')}>
         <div className="item__thumb">
-          <img src={require(`./static/products/${this.props.product.sku}_2.jpg`)} alt={this.props.product.title} title={this.props.product.title}/>
+          add me back
         </div>
         <div className="item__details">
           <p className="title">{this.props.product.title}</p>
