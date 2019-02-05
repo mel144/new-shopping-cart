@@ -11,59 +11,22 @@ firebase.initializeApp({
   storageBucket: "new-shopping-cart-50ad0.appspot.com",
 });
 
-var g_user;
-var product_buffer;
+var g_user_id;
 
 class App extends Component { 
   constructor(props) {
     super(props);
-
-    firebase.database().ref('product_list').on('value',
-      function (snapshot) {
-        product_buffer = snapshot.val();
-        console.log(snapshot.val());
-        return snapshot;
-      });
-
-    console.log(product_buffer);
 
     this.state = {
       cart: {},
       quantities: [],
       cart_opened: false,
       products_show: [],
-      all_products: product_buffer,
+      all_products: [],
       filter_buttons: ["S", "M", "L", "XL"],
       filter_status: [false, false, false, false],
-      isSignedIn: false,
-      database: firebase.database().ref('users/default').orderByChild('1').once('value',
-        function (snapshot) {
-          let temp_database = [];
-          snapshot.forEach((child) => {
-
-            temp_database[child.key] = child.val();
-          })
-
-          return temp_database;
-        })
-    }
-  }
-
-  write_cart = () => {
-    if (this.state.isSignedIn) {
-      return firebase.database().ref('users/' + g_user.id + '/cart').orderByChild('1').once('value',
-        function (snapshot) {
-          let temp_database = [];
-          snapshot.forEach((child) => {
-
-            temp_database[child.key] = child.val();
-          })
-
-          return temp_database;
-        });
-    } else {
-      return [];
-    }
+      isSignedIn: false
+    };
   }
 
   uiConfig = {
@@ -78,63 +41,59 @@ class App extends Component {
 
   componentDidMount = () => {
     firebase.auth().onAuthStateChanged(user => {
-      this.setState({ isSignedIn: !!user })
-      console.log(user);
-      g_user = user;
-      let temp_database = [];
-      
-      if (this.state.isSignedIn) {
-        let new_string = 'users/' + user.uid + '/cart';
-        
-        firebase.database().ref(new_string).orderByChild('1').once('value',
-          function (snapshot) {
-            snapshot.forEach((child) => {
-              temp_database[child.key] = child.val();
-            })
-          });
 
-        if (temp_database.length == 0) {
-          let id = user.uid;
-          
-          let temp = this.state.cart;
-          if (temp.length == 0) {
-            firebase.database().ref('users/' + id).set({
-              "cart": null
-            });
-          } else {
-            firebase.database().ref('users/' + id + '/cart').set({
-              temp
-            },
-              function (error) {
-                if (error) {
-                  console.log("fail");
-                } else {
-                  console.log("success");
-                }
-              });
-          }
-          console.log(user.uid);
-          console.log(this.state.cart);
-        }
-
-      } else {
+      firebase.database().ref('product_list').once('value', snapshot => {
         this.setState({
-          cart: temp_database
+          all_products: snapshot.val() 
+        });
+      });
+
+      if (!!user) {
+        console.log(user);
+        g_user_id = user.uid;
+        let new_string = 'users/' + user.uid + '/cart';
+        console.log("trying to read cart");
+
+        firebase.database().ref(new_string).orderByChild('1').once('value', snapshot => {
+
+          if (snapshot.val() === null) {
+              firebase.database().ref('users/' + g_user_id).set({
+                "cart": "empty"
+              },
+                function (error) {
+                  if (error) {
+                    console.log("failed initializing cart");
+                  } else {
+                    console.log("success initializing cart");
+                  }
+                });
+
+          } else if (snapshot.val() === "empty") {
+            console.log("their cart is empty");
+          } else {
+            console.log("had a cart to load:");
+            console.log(snapshot.val());
+            this.setState({
+              cart: snapshot.val()
+            });
+          }
         });
       }
+
+      this.setState({
+        isSignedIn: !!user
+      });
     })
   };
-  
+
   render() {
     let shown = [];
-
-    this.props.products.forEach((prod) => {
+    
+    Object.entries(this.state.all_products).map(([index, prod]) => {
       if (this.should_show(prod)) {
         shown.push(prod);
       }
     });
-
-    console.log(this.props.all_products);
 
      return (
 
@@ -152,11 +111,11 @@ class App extends Component {
                    />
                )
            }
-          <Filter click={this.toggle_button} filter_buttons={this.state.filter_buttons} status={this.state.filter_status} />
-          <ProductTable products={shown} click={this.add_to_cart} />
+           <Filter click={this.toggle_button} filter_buttons={this.state.filter_buttons} status={this.state.filter_status} />
+           <ProductTable products={shown} click={this.add_to_cart} size_order={this.state.filter_buttons} />
          </main>
          <FloatCart all_products={this.state.all_products} cart_products={this.state.cart} remove={this.remove_from_cart}
-          cart_open={this.state.cart_opened} close={this.closeFloatCart} open={this.openFloatCart} />
+           cart_open={this.state.cart_opened} close={this.closeFloatCart} open={this.openFloatCart} size_order={this.state.filter_buttons} />
       </div>
     );
   }
@@ -228,66 +187,67 @@ class App extends Component {
     return return_value;
   }
 
-  remove_from_cart = (product, size) => {
-    let index = this.find_index(product);
-    if (index !== -1) {
-      let old_q = this.state.quantities[index];
-      let new_q;
-      if (old_q[size] === 1) {
-        new_q = this.state.quantities.slice();
-        let new_d = new_q[index];
-        delete new_d[size]
-        if (Object.keys(new_d).length === 0) {
-          let new_c = this.state.cart.slice();
-          new_c.splice(index, 1);
-          this.setState({ cart: new_c });
-        }
-        this.setState({ quantities: new_q});
+  remove_from_cart = (product, size, i) => {
+    let new_q = this.state.cart;
+    console.log(this.state.cart);
+    console.log(product);
+    console.log(size);
+    console.log(i);
+    if (new_q[i][size] === 1) {
+      if (Object.keys(new_q[i]).length === 1) {
+        delete new_q[i];
+        console.log("just tried to delete whole product");
+        console.log(new_q);
       } else {
-        let new_q = this.state.quantities.slice();
-        new_q[index][size]--;
-        this.setState({ quantities: new_q, cart_opened: true });
+        delete new_q[i][size];
+        console.log("just tried to remove size");
+        console.log(new_q);
       }
+    } else {
+      new_q[product.id][size]--;
     }
+
+    this.setState({
+      cart_open: true
+    });
+    this.update_firebase_cart();
   }
 
   update_firebase_cart = () => {
     if (this.state.isSignedIn) {
-      let temp = this.state.cart;
-      firebase.database().ref('users/' + g_user.id + '/cart').set({
-        temp
+      let cart = this.state.cart;
+      firebase.database().ref('users/' + g_user_id).set({
+        cart
       },
         function (error) {
           if (error) {
-            console.log("fail");
+            console.log("fail updating firebase cart");
           } else {
-            console.log("success");
+            console.log("success updating firebase cart");
           }
         });
     }
+
   };
 
-  add_to_cart = (product, size) => {
-    let new_q = this.state.quantities.slice();
-    if (product.id in new_q) {
-      if (size in new_q[product.id]) {
-        if (new_q[product.id][size] < product["availableSizes"][size]) {
-          new_q[product.id][size]++;
+  add_to_cart = (product, size, index) => {
+    let new_q = this.state.cart;
+    if (index in new_q) {
+      if (size in new_q[index]) {
+        if (new_q[index][size] < product["availableSizes"][size]) {
+          new_q[index][size]++;
         } else {
           alert("Sorry, that's all we have in that size!");
         }
       } else {
-        new_q[product.id][size] = 1;
+        new_q[index][size] = 1;
       }
-      
-      this.setState({ cart: new_q, cart_opened: true });
     } else {
       let new_d = {};
       new_d[size] = 1;
-      new_q[product.id] = new_d;
-      this.setState({ cart: new_q, cart_opened: true});
+      new_q[index] = new_d;
     }
-
+    this.setState({ cart_opened: true });
     this.update_firebase_cart();
   }
 }
@@ -318,9 +278,9 @@ class ProductTable extends Component {
   render() {
     const items = [];
 
-    this.props.products.forEach((product) => {
+    Object.entries(this.props.products).map(([index, product]) => {
       items.push(
-        <ProductItem prod={product} key={product.sku} click={this.props.click} />
+        <ProductItem index={index} prod={product} key={product.sku} click={this.props.click} size_order={this.props.size_order} />
       );
     });
 
@@ -335,16 +295,17 @@ class ProductTable extends Component {
 class ProductItem extends Component {
   render() {
     let formattedPrice = formatPrice(this.props.prod.price, this.props.prod.currencyId);
-    let size_options = Object.entries(this.props.prod.availableSizes).map(([s, q]) => {
-      if (q > 0) {
+
+    let size_options = Object.entries(this.props.size_order).map(([index,size]) => {
+      if (this.props.prod.availableSizes[size] > 0) {
         return (
-          <button className="item__buy-btn" key={s} onClick={() => this.props.click(this.props.prod, s)}>{s}</button>
+          <button className="item__buy-btn" key={size} onClick={() => this.props.click(this.props.prod, size, this.props.index)}>{size}</button>
         );
       } else {
-        return 
+        return null;
       }
-    });
 
+    });
     return (
       <div className="item">
         <div className="item__thumb">
@@ -377,11 +338,12 @@ class FloatCart extends Component {
 
   find_product = (i) => {
     let ret_product = null;
-    console.log(this.props.all_products);
-    Object.entries(this.props.all_products).map((product) => {
-      if (product.id === i) {
+    
+    Object.entries(this.props.all_products).map(([id, product]) => {
+      if (id === i) {
         ret_product = product;
       }
+      return null;
     });
 
     return ret_product;
@@ -397,7 +359,8 @@ class FloatCart extends Component {
           return null; //to suppress a warning from map
         });
       }
-      return <CartProduct product={product} removeProduct={this.props.remove} quantity={quantities} key={product_id} />;
+      return <CartProduct product={product} index={product_id} removeProduct={this.props.remove} quantity={quantities}
+        key={product_id} size_order={this.props.size_order} />;
     });
 
     let classes = ['float-cart'];
@@ -483,25 +446,27 @@ class CartProduct extends Component {
       classes.push('item--mouseover');
     }
     
-    let quantities = Object.entries(this.props.quantity).map(([s, q]) => {
-      return (
-        <div className="quantity" id={s} key={s}>
-            {s}: {q}
-          <div
-            className="item__del"
-            onMouseOver={() => this.handleMouseOver()}
-            onMouseOut={() => this.handleMouseOut()}
-            onClick={() => this.props.removeProduct(this.props.product, s)}
+    let quantities = Object.entries(this.props.size_order).map(([i, s]) => {
+      if (this.props.quantity[s] > 0) {
+        return (
+          <div className="quantity" id={s} key={s}>
+            {s}: {this.props.quantity[s]}
+            <div
+              className="item__del"
+              onMouseOver={() => this.handleMouseOver()}
+              onMouseOut={() => this.handleMouseOut()}
+              onClick={() => this.props.removeProduct(this.props.product, s, this.props.index)}
             />
-        </div>
-
-      );
+          </div>);
+      } else {
+        return null;
+      }
     });
 
     return (
       <div className={classes.join(' ')}>
         <div className="item__thumb">
-          add me back
+          <img src={require(`./static/products/${this.props.product.sku}_2.jpg`)} alt={this.props.product.title} title={this.props.product.title} />
         </div>
         <div className="item__details">
           <p className="title">{this.props.product.title}</p>
