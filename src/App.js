@@ -119,7 +119,7 @@ class App extends Component {
            <Filter click={this.toggle_button} filter_buttons={this.state.filter_buttons} status={this.state.filter_status} />
            <ProductTable products={shown} click={this.add_to_cart} size_order={this.state.filter_buttons} />
          </main>
-         <FloatCart all_products={this.state.all_products} cart_products={this.state.cart} remove={this.remove_from_cart}
+         <FloatCart all_products={this.state.all_products} cart_products={this.state.cart} execute_checkout={this.execute_checkout} remove = { this.remove_from_cart }
            cart_open={this.state.cart_opened} close={this.closeFloatCart} open={this.openFloatCart} size_order={this.state.filter_buttons} />
       </div>
     );
@@ -140,6 +140,34 @@ class App extends Component {
     this.setState({
       filter_status: new_status
     });
+  }
+
+  execute_checkout = () => {
+    console.log("inside execute checkout");
+    let all_prod_copy = this.state.all_products;
+    Object.entries(this.state.cart).map(([prod_index, sizes]) => {
+      console.log(prod_index);
+      Object.entries(sizes).map(([s, q]) => {
+        let before = all_prod_copy[prod_index]["availableSizes"][s];
+        all_prod_copy[prod_index]["availableSizes"][s] = before - q;
+        console.log("copy:", all_prod_copy[prod_index]["availableSizes"][s]);
+        console.log("state:", this.state.all_products[prod_index]["availableSizes"][s]);
+        let iter = 0;
+        for (iter = 0; iter < q; iter++) {
+          this.remove_from_cart(null, s, prod_index);
+        }
+        return null;
+      });
+      return null;
+    });
+
+
+    this.setState({
+      all_products: all_prod_copy,
+      cart_open: false
+    });
+    this.update_firebase_products();
+    this.update_firebase_cart();
   }
 
   should_show = product => {
@@ -209,30 +237,62 @@ class App extends Component {
         console.log(new_q);
       }
     } else {
-      new_q[product.id][size]--;
+      new_q[i][size]--;
     }
 
+    console.log("newq:", new_q);
+    console.log("cart:", this.state.cart);
     this.setState({
       cart_open: true
     });
     this.update_firebase_cart();
   }
 
-  update_firebase_cart = () => {
+  update_firebase_products = () => {
     if (this.state.isSignedIn) {
-      let cart = this.state.cart;
-      firebase.database().ref('users/' + g_user_id).set({
-        cart
+      let product_list = this.state.all_products;
+      firebase.database().ref('/').set({
+        product_list
       },
-        function (error) {
-          if (error) {
-            console.log("fail updating firebase cart");
+        function(error) {
+          if(error) {
+            console.log("Failed to update firebase products");
           } else {
-            console.log("success updating firebase cart");
+            console.log("Success updating firebase products");
           }
         });
     }
+  };
 
+  update_firebase_cart = () => {
+    if (this.state.isSignedIn) {
+      let cart = this.state.cart;
+      if (cart.length === 0) {
+        console.log("emptying cart");
+        firebase.database().ref('users/' + g_user_id).set({
+          cart: "empty"
+        },
+          function (error) {
+            if (error) {
+              console.log("fail updating firebase cart");
+            } else {
+              console.log("success updating firebase cart");
+            }
+          });
+      } else {
+        console.log(cart);
+        firebase.database().ref('users/' + g_user_id).set({
+          cart
+        },
+          function (error) {
+            if (error) {
+              console.log("fail updating firebase cart");
+            } else {
+              console.log("success updating firebase cart");
+            }
+          });
+      }
+    }
   };
 
   add_to_cart = (product, size, index) => {
@@ -333,12 +393,16 @@ class ProductItem extends Component {
 
 class FloatCart extends Component {
   proceedToCheckout = subtotal => {
-    if (this.props.cart.length === 0) {
+    if (this.props.cart_products.length === 0) {
       alert('Add some product in the bag!');
     } else {
-      alert(
+      var ret_val = window.confirm(
         `Checkout - Subtotal: $${formatPrice(subtotal)}`
       );
+
+      if (ret_val) {
+        this.props.execute_checkout();
+      }
     }
   };
 
