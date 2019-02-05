@@ -1,6 +1,10 @@
 {
   /* Visit https://firebase.google.com/docs/database/security to learn more about security rules. */
   "rules": {
+    "product_list": {
+      ".read": "true",
+      ".write": "true"
+    },
     "users": {
       "$uid": {
         ".read": "true",

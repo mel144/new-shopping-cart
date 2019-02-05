@@ -16,6 +16,7 @@ var g_user_id;
 class App extends Component { 
   constructor(props) {
     super(props);
+    console.log("App constructor");
 
     this.state = {
       cart: {},
@@ -25,7 +26,8 @@ class App extends Component {
       all_products: [],
       filter_buttons: ["S", "M", "L", "XL"],
       filter_status: [false, false, false, false],
-      isSignedIn: false
+      isSignedIn: false,
+      loading: true
     };
   }
 
@@ -40,14 +42,23 @@ class App extends Component {
   };
 
   componentDidMount = () => {
+    console.log("component did mount");
     firebase.auth().onAuthStateChanged(user => {
-
-      firebase.database().ref('product_list').once('value', snapshot => {
+      
+      firebase.database().ref('product_list/').orderByChild('0').once('value', snapshot => {
+        console.log("got product list");
         this.setState({
           all_products: snapshot.val() 
         });
-      });
-
+      },
+        function (error) {
+          if (error) {
+            console.log(error);
+          } else {
+            console.log("Successfully loaded all products");
+          }
+        });
+      console.log(this.state.all_products);
       if (!!user) {
         console.log(user);
         g_user_id = user.uid;
@@ -87,8 +98,21 @@ class App extends Component {
   };
 
   render() {
+    console.log("render");
     let shown = [];
-    
+
+    if (this.state.loading) {
+      firebase.database().ref('product_list').once('value', snapshot => {
+        console.log("got product list");
+        this.setState({
+          loading: false,
+          all_products: snapshot.val()
+        });
+      });
+      console.log(this.state.all_products);
+
+    }
+
     Object.entries(this.state.all_products).map(([index, prod]) => {
       if (this.should_show(prod)) {
         shown.push(prod);
