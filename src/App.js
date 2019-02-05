@@ -16,7 +16,6 @@ var g_user_id;
 class App extends Component { 
   constructor(props) {
     super(props);
-    console.log("App constructor");
 
     this.state = {
       cart: {},
@@ -26,8 +25,7 @@ class App extends Component {
       all_products: [],
       filter_buttons: ["S", "M", "L", "XL"],
       filter_status: [false, false, false, false],
-      isSignedIn: false,
-      loading: true
+      isSignedIn: false
     };
   }
 
@@ -42,11 +40,9 @@ class App extends Component {
   };
 
   componentDidMount = () => {
-    console.log("component did mount");
     firebase.auth().onAuthStateChanged(user => {
       
       firebase.database().ref('product_list/').orderByChild('0').once('value', snapshot => {
-        console.log("got product list");
         this.setState({
           all_products: snapshot.val() 
         });
@@ -58,12 +54,11 @@ class App extends Component {
             console.log("Successfully loaded all products");
           }
         });
-      console.log(this.state.all_products);
+      
       if (!!user) {
         console.log(user);
         g_user_id = user.uid;
         let new_string = 'users/' + user.uid + '/cart';
-        console.log("trying to read cart");
 
         firebase.database().ref(new_string).orderByChild('1').once('value', snapshot => {
 
@@ -82,8 +77,6 @@ class App extends Component {
           } else if (snapshot.val() === "empty") {
             console.log("their cart is empty");
           } else {
-            console.log("had a cart to load:");
-            console.log(snapshot.val());
             this.setState({
               cart: snapshot.val()
             });
@@ -98,25 +91,13 @@ class App extends Component {
   };
 
   render() {
-    console.log("render");
     let shown = [];
-
-    if (this.state.loading) {
-      firebase.database().ref('product_list').once('value', snapshot => {
-        console.log("got product list");
-        this.setState({
-          loading: false,
-          all_products: snapshot.val()
-        });
-      });
-      console.log(this.state.all_products);
-
-    }
 
     Object.entries(this.state.all_products).map(([index, prod]) => {
       if (this.should_show(prod)) {
         shown.push(prod);
       }
+      return null; //To suppress warning
     });
 
      return (
@@ -306,6 +287,7 @@ class ProductTable extends Component {
       items.push(
         <ProductItem index={index} prod={product} key={product.sku} click={this.props.click} size_order={this.props.size_order} />
       );
+      return null; //To suppress warning
     });
 
     return (
