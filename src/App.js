@@ -41,8 +41,46 @@ class App extends Component {
 
   componentDidMount = () => {
     firebase.auth().onAuthStateChanged(user => {
-      
-      firebase.database().ref('product_list/').orderByChild('0').once('value', snapshot => {
+      let all_products = [];
+      firebase.database().ref('product_list/').orderByChild('0').on('value', snapshot => {
+        
+        all_products = snapshot.val();
+        if (this.state.isSignedIn){
+          let cart = this.state.cart;
+          let alertString = "I'm so sorry! We're out of stock of some items from your shopping cart. They have been removed. Check our site later for more availabilities!";
+          let removedItems = false;
+
+          Object.entries(all_products).map((product, index) => {
+            if (cart.hasOwnProperty(index)){
+              Object.entries(product[1]["availableSizes"]).map((size, quantity) => {
+                if (cart !== undefined && cart.hasOwnProperty(index) && cart[index].hasOwnProperty(size[0])){
+                  if (size[1] < cart[index][size[0]]){
+                    removedItems = true;
+                    if (size[1] === 0){
+                      delete cart[index][size[0]];
+                      if (Object.entries(cart[index]).length === 0){
+                        delete cart[index];
+                      }
+                    } else {
+                      cart[index][size[0]] = size[1];
+                    }
+                  }
+                  this.update_firebase_cart();
+                }
+                return null;
+              });
+            }
+            return null;
+          });
+
+          if (removedItems){
+            window.alert(alertString);
+          }
+          this.setState({
+            cart: cart
+          });
+        }
+        
         this.setState({
           all_products: snapshot.val() 
         });
@@ -76,9 +114,39 @@ class App extends Component {
 
           } else if (snapshot.val() === "empty") {
             console.log("their cart is empty");
-          } else {
+          } else {            
+            let cart = snapshot.val();
+            let alertString = "I'm so sorry! We're out of stock of some items from your shopping cart. They have been removed. Check our site later for more availabilities!";
+            let removedItems = false;
+
+            Object.entries(all_products).map((product, index) => {
+              if (cart.hasOwnProperty(index)){
+                Object.entries(product[1]["availableSizes"]).map((size, quantity) => {
+                  if (cart[index].hasOwnProperty(size[0])){
+                    if (size[1] < cart[index][size[0]]){
+                      removedItems = true;
+                      if (size[1] === 0){
+                        delete cart[index][size[0]];
+                        if (cart[index].size === 0){
+                          delete cart[index];
+                        }
+                      } else {
+                        cart[index][size[0]] = size[1];
+                      }
+                    }
+                    this.update_firebase_cart();
+                  }
+                  return null;
+                });
+              }
+              return null;
+            });
+
+            if (removedItems){
+              window.alert(alertString);
+            }
             this.setState({
-              cart: snapshot.val()
+              cart: cart
             });
           }
         });
@@ -143,15 +211,11 @@ class App extends Component {
   }
 
   execute_checkout = () => {
-    console.log("inside execute checkout");
     let all_prod_copy = this.state.all_products;
     Object.entries(this.state.cart).map(([prod_index, sizes]) => {
-      console.log(prod_index);
       Object.entries(sizes).map(([s, q]) => {
         let before = all_prod_copy[prod_index]["availableSizes"][s];
         all_prod_copy[prod_index]["availableSizes"][s] = before - q;
-        console.log("copy:", all_prod_copy[prod_index]["availableSizes"][s]);
-        console.log("state:", this.state.all_products[prod_index]["availableSizes"][s]);
         let iter = 0;
         for (iter = 0; iter < q; iter++) {
           this.remove_from_cart(null, s, prod_index);
@@ -160,7 +224,6 @@ class App extends Component {
       });
       return null;
     });
-
 
     this.setState({
       all_products: all_prod_copy,
@@ -222,26 +285,16 @@ class App extends Component {
 
   remove_from_cart = (product, size, i) => {
     let new_q = this.state.cart;
-    console.log(this.state.cart);
-    console.log(product);
-    console.log(size);
-    console.log(i);
     if (new_q[i][size] === 1) {
       if (Object.keys(new_q[i]).length === 1) {
         delete new_q[i];
-        console.log("just tried to delete whole product");
-        console.log(new_q);
       } else {
         delete new_q[i][size];
-        console.log("just tried to remove size");
-        console.log(new_q);
       }
     } else {
       new_q[i][size]--;
     }
 
-    console.log("newq:", new_q);
-    console.log("cart:", this.state.cart);
     this.setState({
       cart_open: true
     });
@@ -268,7 +321,6 @@ class App extends Component {
     if (this.state.isSignedIn) {
       let cart = this.state.cart;
       if (cart.length === 0) {
-        console.log("emptying cart");
         firebase.database().ref('users/' + g_user_id).set({
           cart: "empty"
         },
@@ -280,7 +332,6 @@ class App extends Component {
             }
           });
       } else {
-        console.log(cart);
         firebase.database().ref('users/' + g_user_id).set({
           cart
         },
