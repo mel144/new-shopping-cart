@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
+    "\\src",
     "\\src\\static"
   ],
-  "SelectedNode": "\\src",
+  "SelectedNode": "\\database.rules.json",
   "PreviewInSolutionExplorer": false
 }
